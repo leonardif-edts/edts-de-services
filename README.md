@@ -8,4 +8,4 @@ Collection of Data Engineering services for local development or simulation. Des
 
 |No|Service|Base Image|Standalone|Cluster|
 |:--|:--|:--|:--:|:--:|
-|1|Spark|spark||
+|1|Spark|spark|Yes|Yes|

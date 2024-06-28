@@ -1,0 +1,56 @@
+---
+name: spark-hadoop
+
+# Resources
+networks:
+  internal:
+    driver: bridge
+
+# Common Variables
+x-spark-hadoop-conf:
+  &spark-hadoop-conf
+  image: spark:3.5.1-hadoop-3.4.0
+  environment:
+    &spark-hadoop-conf-environment
+    SPARK_MASTER_HOST: spark-master
+  networks:
+    - internal
+
+# Services
+services:
+  spark-master:
+    <<: *spark-hadoop-conf
+    environment:
+      <<: *spark-hadoop-conf-environment
+      SPARK_MODE: master
+    volumes:
+      - ./conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+      
+      # Spark Scripts
+      - ../../scripts:/opt/spark/work-dir
+    ports:
+      - ${HADOOP_CLUSTER_PORT_EXTERNAL:-8088}:8088
+      - ${HADOOP_DFS_PORT_EXTERNAL:-9870}:9870
+
+  spark-worker:
+    <<: *spark-hadoop-conf
+    environment:
+      <<: *spark-hadoop-conf-environment
+      SPARK_MODE: worker
+    volumes:
+      - ./conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+    scale: 2
+    depends_on:
+      - spark-master
+
+  spark-history:
+    <<: *spark-hadoop-conf
+    environment:
+      <<: *spark-hadoop-conf-environment
+      SPARK_MODE: history
+    volumes:
+      - ./conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+    ports:
+      - ${SPARK_HISTORY_PORT_EXTERNAL:-18080}:18080
+    depends_on:
+      - spark-master
