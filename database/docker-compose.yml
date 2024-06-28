@@ -1,0 +1,25 @@
+---
+name: database
+
+# Resources
+volumes:
+  postgres:
+
+networks:
+  internal:
+    driver: bridge
+
+# Services
+services:
+  postgres:
+    image: postgres:15.3
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks:
+      - internal
+    ports:
+      - ${POSTGRES_PORT_EXTERNAL:-5432}:5432
