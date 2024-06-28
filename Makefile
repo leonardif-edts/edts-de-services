@@ -1,13 +1,47 @@
 ### Environments ###
-# Log
-NO_SERVICE_LOG = "Please specifiy 'service': spark"
+# Resource
+SHARED_NETWORK = local-network
 
 # Image Tag
 DATABASE_POSTGRES_TAG = postgres:15.3
 SPARK_TAG = edts/spark:3.5.1-hadoop-3.4.0
 
 ### Commands ###
-# Database
+network-connect:
+  ifdef service
+    ifeq ($(service),database)
+			@for container in $(shell docker network inspect database_internal | grep Name | tail -n +2 | cut -d':' -f2 | tr -d ' ",'); do docker network connect $(SHARED_NETWORK) $${container} || true; done
+    endif
+    
+    ifeq ($(service),spark-local)
+			@for container in $(shell docker network inspect spark-local_internal | grep Name | tail -n +2 | cut -d':' -f2 | tr -d ' ",'); do docker network connect $(SHARED_NETWORK) $${container} || true; done
+    endif
+
+    ifeq ($(service),spark-hadoop)
+			@for container in $(shell docker network inspect spark-hadoop_internal | grep Name | grep worker | cut -d':' -f2 | tr -d ' ",' | tr '\n' ' '); do docker network connect $(SHARED_NETWORK) $${container} || true; done
+    endif
+  else
+		@echo "Network Register need 'service' argument"
+  endif
+
+network-disconnect:
+  ifdef service
+    ifeq ($(service),database)
+			@for container in $(shell docker network inspect database_internal | grep Name | tail -n +2 | cut -d':' -f2 | tr -d ' ",'); do docker network disconnect $(SHARED_NETWORK) $${container} || true; done
+    endif
+    
+    ifeq ($(service),spark-local)
+			@for container in $(shell docker network inspect spark-local_internal | grep Name | tail -n +2 | cut -d':' -f2 | tr -d ' ",'); do docker network disconnect $(SHARED_NETWORK) $${container} || true; done
+    endif
+
+    ifeq ($(service),spark-hadoop)
+			@for container in $(shell docker network inspect spark-hadoop_internal | grep Name | grep worker | cut -d':' -f2 | tr -d ' ",' | tr '\n' ' '); do docker network disconnect $(SHARED_NETWORK) $${container} || true; done
+    endif
+  else
+		@echo "Network Register need 'service' argument"
+  endif
+
+# Service - Database
 database-pull:
   docker pull ${DATABASE_POSTGRES_TAG}
 
@@ -33,7 +67,7 @@ database-down:
     endif
   endif
 
-# Spark
+# Service - Spark
 spark-build:
 	docker build -t $(SPARK_TAG) spark/base
 
