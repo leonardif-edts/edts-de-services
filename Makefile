@@ -3,12 +3,15 @@
 NO_SERVICE_LOG = "Please specifiy 'service': spark"
 
 # Image Tag
-SPARK_TAG = spark:3.5.1-hadoop-3.4.0
+SPARK_TAG = edts/spark:3.5.1-hadoop-3.4.0
 
 ### Commands ###
 # Spark
 spark-build:
 	docker build -t $(SPARK_TAG) spark/base
+
+spark-pull:
+  docker pull ${SPARK_TAG}
 
 spark-up:
   ifdef mode
@@ -59,4 +62,11 @@ spark-submit:
     endif
   else
 		@echo "Spark Submit need 'script' argument"
+  endif
+
+spark-logs:
+  ifdef applicationId
+		docker compose -f spark/infra/spark-hadoop/docker-compose.yml exec spark-history yarn logs -applicationId $(applicationId)
+  else
+		@echo "Spark Logs need 'applicationId' argument"
   endif
