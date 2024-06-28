@@ -9,7 +9,7 @@ networks:
 # Common Variables
 x-spark-hadoop-conf:
   &spark-hadoop-conf
-  image: avidito/spark:3.5.1-hadoop-3.4.0
+  image: spark:3.5.1-hadoop-3.4.0
   environment:
     &spark-hadoop-conf-environment
     SPARK_MASTER_HOST: spark-master
@@ -25,6 +25,9 @@ services:
       SPARK_MODE: master
     volumes:
       - ./conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+      
+      # Spark Scripts
+      - ../../scripts:/opt/spark/work-dir
     ports:
       - ${HADOOP_CLUSTER_PORT_EXTERNAL:-8088}:8088
       - ${HADOOP_DFS_PORT_EXTERNAL:-9870}:9870
@@ -49,18 +52,5 @@ services:
       - ./conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
     ports:
       - ${SPARK_HISTORY_PORT_EXTERNAL:-18080}:18080
-    depends_on:
-      - spark-master
-
-  spark-local:
-    <<: *spark-hadoop-conf
-    environment:
-      <<: *spark-hadoop-conf-environment
-      SPARK_MODE: local
-    volumes:
-      - ./conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
-      
-      # Scripts
-      - ../../scripts:/opt/spark/work-dir
     depends_on:
       - spark-master

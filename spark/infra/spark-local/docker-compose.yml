@@ -5,7 +5,7 @@ networks:
 
 services:
   spark-local:
-    image: avidito/spark:3.5.1-hadoop-3.4.0
+    image: spark:3.5.1-hadoop-3.4.0
     environment:
       SPARK_MODE: local
     volumes:
