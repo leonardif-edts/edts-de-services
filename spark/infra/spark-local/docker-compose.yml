@@ -1,0 +1,17 @@
+# Resources
+networks:
+  internal:
+    driver: bridge
+
+services:
+  spark-local:
+    image: avidito/spark:3.5.1-hadoop-3.4.0
+    environment:
+      SPARK_MODE: local
+    volumes:
+      - ./conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+      - ./conf/log4j2.properties:/opt/spark/conf/log4j2.properties
+      # Scripts
+      - ../../scripts:/opt/spark/work-dir
+    networks:
+      - internal
