@@ -9,8 +9,6 @@ RUN apt-get update\
 
 # Setup Spark directory and path
 ENV SPARK_HOME=/opt/spark
-ENV PYSPARK_PYTHON=python3
-ENV PYTHONPATH=$SPARK_HOME/python/:${PYTHONPATH} 
 ENV PATH="${SPARK_HOME}/bin:${SPARK_HOME}/sbin:${PATH}"
 
 RUN mkdir -p ${SPARK_HOME}/conf
@@ -41,6 +39,9 @@ EXPOSE 22
 
 # Copy Hadoop Configs
 COPY ./yarn/*.xml ${HADOOP_HOME}/etc/hadoop
+
+# Add Additional Jars for Spark
+COPY jars/*.jar ${SPARK_HOME}/jars/
 
 # Set Entrypoint
 COPY entrypoint.sh /entrypoint.sh

@@ -1,45 +1,7 @@
 ### Environments ###
-# Resource
-SHARED_NETWORK = local-network
-
 # Image Tag
 DATABASE_POSTGRES_TAG = postgres:15.3
 SPARK_TAG = edts/spark:3.5.1-hadoop-3.4.0
-
-### Commands ###
-network-connect:
-  ifdef service
-    ifeq ($(service),database)
-			@for container in $(shell docker network inspect database_internal | grep Name | tail -n +2 | cut -d':' -f2 | tr -d ' ",'); do docker network connect $(SHARED_NETWORK) $${container} || true; done
-    endif
-    
-    ifeq ($(service),spark-local)
-			@for container in $(shell docker network inspect spark-local_internal | grep Name | tail -n +2 | cut -d':' -f2 | tr -d ' ",'); do docker network connect $(SHARED_NETWORK) $${container} || true; done
-    endif
-
-    ifeq ($(service),spark-hadoop)
-			@for container in $(shell docker network inspect spark-hadoop_internal | grep Name | grep worker | cut -d':' -f2 | tr -d ' ",' | tr '\n' ' '); do docker network connect $(SHARED_NETWORK) $${container} || true; done
-    endif
-  else
-		@echo "Network Register need 'service' argument"
-  endif
-
-network-disconnect:
-  ifdef service
-    ifeq ($(service),database)
-			@for container in $(shell docker network inspect database_internal | grep Name | tail -n +2 | cut -d':' -f2 | tr -d ' ",'); do docker network disconnect $(SHARED_NETWORK) $${container} || true; done
-    endif
-    
-    ifeq ($(service),spark-local)
-			@for container in $(shell docker network inspect spark-local_internal | grep Name | tail -n +2 | cut -d':' -f2 | tr -d ' ",'); do docker network disconnect $(SHARED_NETWORK) $${container} || true; done
-    endif
-
-    ifeq ($(service),spark-hadoop)
-			@for container in $(shell docker network inspect spark-hadoop_internal | grep Name | grep worker | cut -d':' -f2 | tr -d ' ",' | tr '\n' ' '); do docker network disconnect $(SHARED_NETWORK) $${container} || true; done
-    endif
-  else
-		@echo "Network Register need 'service' argument"
-  endif
 
 # Service - Database
 database-pull:
@@ -130,4 +92,28 @@ spark-logs:
 		docker compose -f spark/infra/spark-hadoop/docker-compose.yml exec spark-history yarn logs -applicationId $(applicationId)
   else
 		@echo "Spark Logs need 'applicationId' argument"
+  endif
+
+spark-connect-database:
+  ifdef db
+    ifdef mode
+			@for container in $(shell docker network inspect database_internal | grep Name | tail -n+2 | cut -d':' -f2 | tr -d '", ' | grep $(db)); do docker network connect spark-$(mode)_internal $${container} || true; done
+    else
+			@echo "Using default: mode=local"
+			@for container in $(shell docker network inspect database_internal | grep Name | tail -n+2 | cut -d':' -f2 | tr -d '", ' | grep $(db)); do docker network connect spark-local_internal $${container} || true; done
+    endif
+  else
+		@echo "Spark Connect need 'db' argument"
+  endif
+
+spark-disconnect-database:
+  ifdef db
+    ifdef mode
+			@for container in $(shell docker network inspect database_internal | grep Name | tail -n+2 | cut -d':' -f2 | tr -d '", ' | grep $(db)); do docker network disconnect spark-$(mode)_internal $${container} || true; done
+    else
+			@echo "Using default: mode=local"
+			@for container in $(shell docker network inspect database_internal | grep Name | tail -n+2 | cut -d':' -f2 | tr -d '", ' | grep $(db)); do docker network disconnect spark-local_internal $${container} || true; done
+    endif
+  else
+		@echo "Spark Disconnect need 'db' argument"
   endif
