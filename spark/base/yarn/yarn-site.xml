@@ -24,7 +24,6 @@
         <name>yarn.scheduler.minimum-allocation-mb</name>
         <value>512</value>
     </property>
-
     <property>
         <name>yarn.log-aggregation-enable</name>
         <value>true</value>
