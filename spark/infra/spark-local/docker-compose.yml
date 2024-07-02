@@ -1,3 +1,6 @@
+---
+name: spark-local
+
 # Resources
 networks:
   internal:
@@ -5,7 +8,7 @@ networks:
 
 services:
   spark-local:
-    image: spark:3.5.1-hadoop-3.4.0
+    image: edts/spark:3.5.1-hadoop-3.4.0
     environment:
       SPARK_MODE: local
     volumes:

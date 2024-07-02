@@ -5,4 +5,8 @@
     <name>fs.defaultFS</name>
     <value>hdfs://spark-master:8080</value>
   </property>
+  <property>
+    <name>hadoop.security.credential.provider.path</name>
+    <value>jceks://hdfs/user/hadoop/keystore.jceks</value>
+  </property>
 </configuration>

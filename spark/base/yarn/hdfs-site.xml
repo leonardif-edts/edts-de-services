@@ -15,6 +15,6 @@
   </property>
   <property>
     <name>dfs.permissions.enabled</name>
-    <value>false</value>
+    <value>true</value>
   </property>
 </configuration>
