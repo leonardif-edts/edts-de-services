@@ -4,34 +4,12 @@ scale = 1
 logFile = stdout
 tag = edts/spark:3.5.1-hadoop-3.4.0
 
+# Placeholder
+help:
+	@echo "Please specify any command"
 
 ### Commands ###
-# Service - Database
-database-up:
-  ifdef db
-		docker compose -f database/docker-compose.yml up -d
-  else
-		docker compose -f database/docker-compose.yml up -d $(db)
-  endif
-
-database-down:
-  ifeq ($(clean),true)
-		@echo "Tear Down Database with `clean=true`"
-    ifdef db
-			docker compose -f database/docker-compose.yml down $(db) -v --remove-orphans
-    else
-			docker compose -f database/docker-compose.yml down -v --remove-orphans
-    endif
-  else
-		@echo "Tear Down Database with `clean=false`"
-    ifdef db
-			docker compose -f database/docker-compose.yml down $(db) --remove-orphans
-    else
-			docker compose -f database/docker-compose.yml down --remove-orphans
-    endif
-  endif
-
-# Service - Spark
+# Spark
 spark-build:
 	docker build -t $(tag) spark/base
 
@@ -72,12 +50,31 @@ spark-cred-delete:
 spark-cred-list:
 	docker compose -f spark/infra/spark-hadoop/docker-compose.yml exec spark-master hadoop credential list
 
-spark-connect:
-  ifdef db
-		docker network connect spark-$(mode)_internal database-$(db)-1
+spark-cred-connect-local:
+	docker network connect spark-hadoop_internal spark-local-spark-local-1
+
+# Resource
+resource-up:
+  ifdef resources
+		@for resource in $(shell echo $(resources) | sed 's/,/ /g'); do docker compose -f resource/docker-compose.yml up -d $$resource; done
+  else
+		docker compose -f resource/docker-compose.yml up -d
   endif
 
-spark-disconnect:
-  ifdef db
-		docker network disconnect spark-$(mode)_internal database-$(db)-1
+resource-down:
+  ifdef resources
+		@for resource in $(shell echo $(resources) | sed 's/,/ /g'); do docker compose -f resource/docker-compose.yml down --remove-orphans $(if $(filter true, $(clean)),-v,) $$resource; done
+  else
+		docker compose -f resource/docker-compose.yml down --remove-orphans $(if $(filter true, $(clean)),-v,)
+  endif
+
+resource-connect:
+  ifdef service
+    ifdef resources
+			@for resource in $(shell echo $(resources) | sed 's/,/ /g'); do docker network connect $(service)_internal resource-$$resource-1 || true; done
+    else
+			@for resource in $(shell docker compose -f resource/docker-compose.yml ps | tail -n+2 | cut -d' ' -f1 | tr '\n' ' '); do docker network connect $(service)_internal $$resource || true; done
+    endif
+  else
+		@echo "Resource Connect need 'service' argument"
   endif
