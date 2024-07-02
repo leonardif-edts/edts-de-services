@@ -20,4 +20,4 @@ List of additional resources:
 
 |Resource|Base Image|Description|
 |:--|:--|:--|
-|PostgreSQL|postgres:15.3|PostgreSQL database instance|
+|postgres|postgres:15.3|PostgreSQL database instance|
