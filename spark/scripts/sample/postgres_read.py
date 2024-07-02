@@ -6,8 +6,11 @@ spark = SparkSession.Builder()\
 
 # Get Hadoop Conf
 conf = spark.sparkContext._jsc.hadoopConfiguration()
-creds_raw = conf.getPassword("database-postgres-cred")
-db_pass = "".join([str(creds_raw.__getitem__(i)) for i in range(creds_raw.__len__())])
+creds_raw = conf.getPassword("database.postgres.pass")
+if creds_raw:
+    db_pass = "".join([str(creds_raw.__getitem__(i)) for i in range(creds_raw.__len__())])
+else:
+    raise ValueError("'database.postgres.pass' is not exists")
 
 # Read from PostgreSQL
 df = spark.read\
@@ -23,5 +26,5 @@ df = spark.read\
 df.printSchema()
 df.show()
 
-# Stop 
+# Stop Instance
 spark.stop()

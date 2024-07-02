@@ -1,12 +1,9 @@
 ### Environments ###
-# Image Tag
-DATABASE_POSTGRES_TAG = postgres:15.3
+# Tags
 SPARK_TAG = edts/spark:3.5.1-hadoop-3.4.0
 
+### Commands ###
 # Service - Database
-database-pull:
-  docker pull ${DATABASE_POSTGRES_TAG}
-
 database-up:
   ifdef db
 		docker compose -f database/docker-compose.yml up -d
@@ -94,7 +91,24 @@ spark-logs:
 		@echo "Spark Logs need 'applicationId' argument"
   endif
 
-spark-connect-database:
+spark-secret-create:
+  ifdef name
+		docker compose -f spark/infra/spark-hadoop/docker-compose.yml exec spark-master hadoop credential create $(name)
+  else
+		@echo "Spark Create Secret need 'name' argument"
+  endif
+
+spark-secret-delete:
+  ifdef name
+		docker compose -f spark/infra/spark-hadoop/docker-compose.yml exec spark-master hadoop credential delete $(name)
+  else
+		@echo "Spark Create Secret need 'name' argument"
+  endif
+
+spark-secret-list:
+	docker compose -f spark/infra/spark-hadoop/docker-compose.yml exec spark-master hadoop credential list
+
+spark-database-connect:
   ifdef db
     ifdef mode
 			@for container in $(shell docker network inspect database_internal | grep Name | tail -n+2 | cut -d':' -f2 | tr -d '", ' | grep $(db)); do docker network connect spark-$(mode)_internal $${container} || true; done
@@ -106,7 +120,7 @@ spark-connect-database:
 		@echo "Spark Connect need 'db' argument"
   endif
 
-spark-disconnect-database:
+spark-database-disconnect:
   ifdef db
     ifdef mode
 			@for container in $(shell docker network inspect database_internal | grep Name | tail -n+2 | cut -d':' -f2 | tr -d '", ' | grep $(db)); do docker network disconnect spark-$(mode)_internal $${container} || true; done
